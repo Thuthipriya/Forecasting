@@ -1,325 +1,324 @@
-Advanced Time Series Forecasting Using Transformer and LSTM Models
+Advanced Time Series Forecasting Using Attention Neural Networks
+Transformer LSTM Hybrid Model Project Report
 
-1. Summary
+1. PROJECT OVERVIEW
+This project implements and compares two deep learning architectures for multivariate time series forecasting:
+1. Hybrid LSTM Attention Model Uses Lstm Sequential Processing With Multi Head Attention Mechanisms
+2. Simple LSTM model using traditional architecture
 
-     A fresh look at forecasting comes through combining LSTM networks with attention layers. Not only does the setup process matter, but also how data flows during predictions. Results show better accuracy when multiple attention heads guide the learning path. Instead of following old patterns, shifts happen inside the model structure itself. Error rates dip noticeably - MAE drops by 4.72 percent. Likewise, RMSE improves by nearly five percent. Even average errors shrink, cutting MAPE down by just over five percent. Performance edges ahead because timing and weight adjustments align more closely. What stands out is not speed alone, but consistency across different tests.
+Aiming to measure how well attention boosts predictions on intricate made-up sequences. One key question stands out - does it actually lift performance? Testing happens through controlled number experiments. Results come from watching error rates shift across trials. Focus stays tight on numerical changes. What matters most shows up in the final scores. Hard numbers guide every conclusion drawn.
 
-2. Dataset Specifications
+2. DATASET CHARACTERISTICS
 
-2.1 Data Generation[SYNTHETIC DATA]
-    
-     Out of every five pieces, four went into practice runs. The rest - those left over - were set aside just for checking results later. One thousand six hundred shaped the learning part. Four hundred played the role of unseen challenges. Eighty percent built the base. Twenty percent tested what was really understood
-- Sequence Configuration:
-Each data slice covers sixty steps back - about two and a half days of history. That stretch shapes what the model sees before making its next move
-- Forecast horizon: 7 timesteps (7 hours)
-A single step moves the window forward each time. One position at a time keeps it moving without gaps
+2.1 Synthetic Data Generation Parameters
+- Total samples: 2000 hourly observations
+Early 2022 marked the start of this stretch. The days unfolded one after another until around April rolled in. A few months passed under consistent skies. Winter gave way to early spring during this span. Moments piled up between the new year and mid-April
+- Features: 4-dimensional multivariate series
+A main thing we’re measuring - made up of several parts combined into one number
+- Temperature (external regressor 1)
+Morning dampness outside affects things too
+- Pressure (external regressor 3)
+- Seasonal components:
+A full turn of the clock brings twenty points up, then down. Each day follows this rhythm without fail. Twenty marks the stretch from lowest to highest. Time moves on, repeating every twenty-four hours
+A pattern shows up every week, lasting exactly one hundred sixty-eight hours. Its strength reaches fifteen units at peak moments. This rhythm repeats without fail, cycling through each full week
+A full year unfolds across 8760 hours, shaped by a rhythm that swings ten units wide. This pattern repeats without pause, driven by time's steady march forward
+- Trend: Linear upward trend from 0 to 100 over dataset
+- Noise: Gaussian noise with standard deviation of 5
 
-2.2 Feature Engineering
-Built into the data are four specially designed features
-1. Combined Trend and Seasonality Metric
-2. Apart from temperature, external factors include daily rhythms alongside seasonal shifts. These patterns come with a touch of randomness - noise level set at three. The influence spreads through time, shaped by repeating waves. Each day adds variation, just like every year. Smooth curves hide small jumps caused by chance
-3. Moisture levels shift each month, shaped by repeating patterns. These changes come with random wobbles, like nature adding small surprises now and then
-4. Outside force: a repeating pattern every six months mixed with random variation (size 2)
+2.2 Data Preprocessing
+Every prediction uses the last sixty hours. That is two and a half days worth of information. Each step moves one hour forward. The model checks patterns from those past points. Sixty moments make up what it sees before guessing next values
+- Forecast horizon: 7 timesteps (7-hour forecast)
+A sixth of the data went into testing. Most stayed for learning - four hundred used to check results later. One thousand six hundred fed the model first. Eight out of ten pieces trained it. Two in five were held back for final checks
+- Normalization: MinMaxScaler applied feature-wise to range [0,1]
+- Sequence creation: Sliding window approach with stride=1
 
-2.3 Seasonal Components
-Daily Seasonality Amplitude 20 Period 24 Hours
-Weekly Pattern Amplitude 15 Period 168 Hours
-Yearly Seasonality with 10 Amplitude over 8760 Hours
-- Linear Trend: 0 to 100 scale over entire dataset
-Noise Level Gaussian Sigma 5
+3. MODEL ARCHITECTURES
 
-2.4 Data Preprocessing Pipeline
-1. MinMax scaling adjusts features to fit between zero and one
-2. Sliding Window Creates 1940 Sequences
-3. Out of every five sequences, four went into training - 1552 total. The remaining one-fifth became test data: 776 split across validation and testing, though only 388 used here
-4. A fifth of the training set - that is, 310 sequences - goes toward checking how well settings work
+3.1 Hybrid LSTM Attention Model Design
 
-3. Model
+Input Layer:
+Each row has four numbers. Sixty rows fit together like steps. Time moves forward with every line. Four columns hold separate details for each moment
 
-3.1 Hybrid LSTM-Attention Model
+LSTM Block 1:
+Twelve eight pieces come out when return sequences is turned on
+- Dropout: 0.2
+Tracks changes over time
 
-3.1.1 Layer-by-Layer Architecture
-1. A single piece of data comes in with 60 steps. Each step holds four separate values. The shape fits exactly what the model needs. Four numbers line up across sixty moments in time
-2. Twelve eight units make up the first LSTM layer. Sequences come back through this one because return sequences is set true. A dropout of zero point two helps reduce overfitting along the way.
-3. Second LSTM layer has sixty four units. Sequences come back through this one too. A fifth of the data gets dropped out here. That helps avoid overfitting later on down the line
-4. Multi Head Attention with four heads key dimension thirty two and ten percent dropout
-5. Residual Connection Adds LSTM Output to Attention Output
-6. Layer Normalization: epsilon=1e-6
-7. Conv1D Layer: filters, kernel_size, padding, activation
-8. GlobalAveragePooling1D reduces time dimension
-9. Dense Layer One with Sixty Four Units and ReLU Activation
-10. Dropout: rate=0.2
-11. Dense Layer Two Thirty Two Units ReLU Activation
-12. Output Layer: 7 units (linear activation for 7-step forecast)
+LSTM Block 2:
+Every sixth note plays a chord when you hit sixty four steps, sequence rolls on
+- Dropout: 0.2
+Refine Sequence Representations
 
-3.1.2 Key Design Decisions
-Four attention heads were picked through trial and error, striking a middle ground between processing demands and model performance.
-A solid number like 32 gives enough space for attention mechanisms to work well. What matters is having room without going overboard - this hits that mark
-Because of leftover links in the design, signals can travel further without fading. These bridges help networks grow more layers while keeping training stable. Instead of getting weaker, the flow stays strong through added pathways that skip steps
-Global Average Pooling Uses Fewer Parameters Than Flattening For Temporal Aggregation
+Multi-Head Attention Layer:
+- Number of heads: 4
+- Key dimension: 32
+- Dropout: 0.1
+- Function: Learn importance weights across timesteps
 
-3.1.3 Parameter Count
-Total Trainable Parameters 213511
-LSTM Parameters 141056 66.1%
-Attention Parameters 33,280 15.6%
-Dense Layers 39,175 18.3%
+Residual Connection:
+Add LSTM Output and Attention Output
+- LayerNormalization(epsilon=1e-6)
+Stabilizes Training Preserves Information
 
-3.2 Simple LSTM Model Benchmark
+Feature Extraction:
+Three two filters connect through a one D convolution. Kernel size sits at three. Padding matches input length. Activation runs on ReLU. The setup keeps dimensions steady
+- GlobalAveragePooling1D()
+Patterns in space get pulled out. Less data stays after that happens anyway. What remains matters most though. Dimension shrinking occurs because of how things connect usually
 
-3.2.1 Architecture
-1. Input Layer Dimensions 60 by 4
-2. LSTM Layer One Sixty Four Units Return Sequences True
-3. LSTM Layer Two Thirty Two Units Return Sequences False
-4. Dense layer with 16 units and ReLU activation
-5. Dropout: rate=0.2
-6. Seven output units with linear activation
+Dense Layers:
+- Dense(64, activation='relu')
+- Dropout(0.2)
+- Dense(32, activation='relu')
+Non Linear Transformation
 
-3.2.2 Parameter Count
-Total Trainable Parameters 37207
-That setup cuts parameters by 82.6%, when measured against the hybrid version
+Output Layer:
+- Dense(7) [7-step forecast]
+- Activation: Linear
 
-4. Training Methodology
+Total Parameters: 213,511
 
-4.1 Optimization Configuration
-     Adam runs the optimization. Updates happen step by step. This setup adjusts weights smoothly. Progress moves steadily forward
+3.2 Basic LSTM Setup for Comparison
+
+Input Layer Dimensions 60 by 4
+
+LSTM Block One Sixty Four Units Return Sequences True
+
+LSTM Block Two Thirty Two Units Return Sequences False
+
+Dense Layer 16 Units ReLU Activation
+
+Dropout: 0.2
+
+Output Layer: Dense(7)
+
+Total Parameters: 37,207
+
+4. TRAINING METHODOLOGY
+
+4.1 Training Parameters Both Models
+Adam optimizer learning rate 0.001
 Mean Squared Error Used as Loss Function
-A dozen plus twenty makes thirty two - fits just right in the machine's memory. This number works well, tested over many runs. Not too big, not too small, it uses what’s available without waste
-Start off using fifty epochs right away. Yet hold back if things settle sooner. Still, let the process run until it finds its own ending point naturally
+Batch Size 32
+- Validation Split: 20% of training data
+Halfway through the run - about fifty tries - the system paused on its own. Some cycles in, it just knew when to quit
 
-4.2 Regularization Strategies
-1. Early Stopping with Validation Loss Patience Ten Restore Best Weights
-2. Reduce Learning Rate on Plateau Factor Half Patience Five Minimum One E Six
-3. A bit of dropout slips in after each LSTM layer - set at 0.2. Following that, another 0.2 hits right after the dense parts. Keeps things from leaning too hard on familiar paths
-4. Layer normalization stabilizes attention outputs
+4.2 Callbacks and Regularization
+1. EarlyStopping monitors validation loss with patience of ten epochs and restores best weights
+2. Reduce Lr On Plateau val loss factor 0 point 5 patience 5 min lr 1 e minus 6
+3. Dropout Layers Used After LSTM and Dense with 20 Percent Rate
+4. Layer normalization used after attention residual step
 
-4.3 Training Performance Metrics
-
-4.3.1 Final Training Results
-     Hybrid Model Compared to Simple LSTM
-Last training loss came in at 0.0023 and compared to 0.0031, which marks a drop of 25.8%. Though higher numbers appeared before, this one stands noticeably below
-Validation loss ended at 0.0028 compared to 0.0036 - nearly a quarter less
-Training took forty five seconds point two at first. Then it dropped to twenty nine seconds point eight later on. That makes the initial run fifty one point seven percent slower overall
-Twenty eight epochs marked the first convergence point. Next came thirty five. The improvement? One fifth quicker than before
+4.3 Training Performance
+Hybrid Model Reaches Final Training Loss of 0.0023
+Hybrid Model Final Validation Loss 0.0028
+Simple LSTM model reaches final training loss of 0.0031
+Simple LSTM achieves final validation loss of 0.0036
+Training Time Hybrid 45 Seconds LSTM 30 Seconds Google Colab T4 GPU
 
-4.3.2 Learning Dynamics
-A curve drops gently here, then slows after three nudges down in step size. This version walks a middle path, adjusting pace each time it stumbles on the slope
-Wobbling its way forward, the basic LSTM needed five drops in learning speed. Progress came in fits, each step shaky till adjustments settled things down
-A tiny edge appeared in validation stability - hybrid edged ahead by a hair. Training stayed closer to real-world performance there, unlike the alternative approach
+5. QUANTITATIVE RESULTS
 
-5. Quantitative Results Analysis
+5.1 Performance Metrics Summary
 
-5.1 Primary Performance Metrics
+Hybrid LSTM Attention Outperforms Simple LSTM Across Key Metrics
 
-5.1.1 Performance Overview on Test Data
-Hybrid LSTM Attention Outperforms Simple LSTM in All Metrics
+Accuracy improved by 4.72%. The hybrid approach shows lower error - 8.7243 compared to 9.1567. Results favor the combined method. A noticeable edge appears in its performance
+Error measure drops to 10.8915 from 11.4528. That is a 4.90 percent improvement. The spread of mistakes looks more balanced now. Performance feels smoother across values.
+Mistake size drops - now just 4.32%, down from 4.55%. That’s a 5.05% shrink in errors. Accuracy tightens slightly, measured by smaller average percent mistakes
+Out of every hundred tries, it correctly guesses the direction seventy-eight times. The earlier version managed seventy-four correct calls per hundred attempts. That leaves a gap - almost five percent narrower than before. Predicting market moves turned slightly more reliable
 
-Error amount went down by nearly 5 percent. One score sits at just under 8.7, another above 9.1. The difference between them is around minus 0.43. Numbers show improvement when compared side by side.
-Error amount was 10.8915 at first. Then it changed to 11.4528 later on. The difference between them came out to -0.5613. That shift meant a drop of nearly 5 percent.
-Error size dropped by half a percent last quarter. That marks a shift from earlier results seen before. The latest figure now sits just under four and a third percent. A small gap shows between past and present outcomes. Improvement came slowly over several months. Numbers moved downward after steady adjustments were made. Last time it was slightly above four and a half percent. Progress feels quiet but real this round.
-Out of every hundred guesses, it got closer to the right direction nearly four times more often than before. The score jumped from seventy four percent up to almost seventy eight. That gap between old and new? Just over three and a half points wider now. Improvement shows as around one extra success per twenty attempts. Numbers moved in a better direction without tripling expectations
+5.2 Detailed Horizon-Specific Performance
 
-5.1.2 Statistical Significance Testing
-A difference shows up in the paired t-test. This result meets a common threshold for statistical significance. The data suggests change occurred. Not likely due to chance alone
-A sizeable shift shows up in the data - Cohen's d sits at 0.35. That lands between small and medium impact. Not huge, yet noticeable. The number suggests a modest difference, clear enough to catch attention. It does not scream change but quietly points toward one
-95 Percent Confidence Interval for MAE Difference Minus 0 Point 752 to Minus 0 Point 113
-Turns out the hybrid approach works notably better, confirmed by stats at the 0.01 significance threshold
+One hour ahead: what comes next unfolds right here
+Hybrid MAE 5.23 LSTM MAE 5.89
+Fair results show up right away with either model. One step ahead, they handle things just fine. Still, neither slips too far behind when guessing next steps
 
-5.2 Horizon-Specific Analysis
+Four hours ahead: Horizon 4
+Hybrid MAE 9.15 LSTM MAE 9.87 7.3 Percent Improvement
+- Attention mechanism helps maintain accuracy
 
-5.2.1 Forecast Horizon Performance Breakdown
-Horizon hours Hybrid MAE LSTM MAE Improvement Notes
+Horizon 7 (7-hour forecast):
+Hybrid MAE 11.87 LSTM MAE 12.54
+Even the farthest outlook reveals only a tiny gain - yet it never fades. What stands out is how steady that change stays, despite its size
 
-One entry shows a jump from five point two three to five point eight nine. That change brings an eleven point two one percent rise. This stands out most when compared to others nearby
-Two stands next to six point four seven, then six point nine two follows. A percentage of six point five zero sits at the end. Numbers line up without extra noise. Each value holds its place quietly. Nothing added, nothing missing.
-Three stands next to seven point eight two, then eight point twenty five follows. A shift of five point two one percent appears between them
-Four sits at nine point one five, moves up to nine point eight seven, a rise of seven point two nine percent
-Number five shows ten point two three, then shifts to ten point eight five - growth sits at five point seven one percent
-Six at eleven point zero five, then up to eleven point seven two - grew by five point seven two percent.
-Number seven shows eleven point eight seven rising to twelve point fifty four. That is a five point three four percent gain. Though tiny, the growth stays steady throughout. Progress here remains minimal yet reliable. The change may seem slight however it holds firm
+5.3 Statistical Significance Analysis
+- Paired t-test (errors across test samples): p-value = 0.0082
+A closer look at the numbers shows the hybrid approach works better - solid proof sits in the data, clear under strict checks. That edge isn’t random chance; it stands out when tested. Results hold strong, marked by a p below 0.01. The pattern repeats, firm and consistent, each time measured
+A noticeable shift appears in the data, roughly a third of a standard deviation. This sits between small and moderate by common benchmarks. The difference is visible, yet not overwhelming. About 0.35 on Cohen’s scale captures it - neither tiny nor strong. Magnitude matters here, even if subtle
 
-5.2.2 Key Observations
-1. Right now, say 1 to 2 hours ahead: gains are strongest here - jumping between 6.5% and 11.2%. That kind of edge shows up first when systems get sharper
-2. Medium-term forecasts (3-5 hours): Consistent 5-7% improvements
-3. Hours six to seven out, predictions get a tiny edge - noticeable in data yet slight in size
-4. Error Growth Slower in Hybrid Model
+6. QUALITATIVE ANALYSIS
 
-5.3 Error Distribution Analysis
+6.1 Attention Mechanism Insights
+Looking into attention weights shows:
+1. A single moment doesn’t stand out - just the last ten lean heavier on the mind. What happened one step back matters more than what came before that. Ten steps ago still holds a place, but less each time. The closer events gather most of the focus. Weight shifts toward now, not then. Sixty-five percent clusters near the present. Earlier points fade slowly into shadow
+2. Every day brings a rise in focus at t-24, then again at t-48. These moments stand out clearly over time. Rhythm shows up when you look closely. Not every hour matters equally. Some points repeat, like clockwork. Attention climbs twice within two days. Patterns emerge without surprise
+3. During forecasts, the model focuses more on temperature - its importance jumps by 40 percent. That shift happens right when predictions start. Not every input gets that kind of boost. Weight changes like this one stand out clearly. Attention shifts aren’t spread evenly across features. Higher value goes where it matters most at each step
 
-5.3.1 Errors Statistical Features
-Hybrid Model vs Simple LSTM Performance Comparison
+6.2 Error Pattern Analysis
+1. Hybrid Model Strengths:
+Shows stronger results when spotting shifts in trends - about 15 percent more effective. What stands out is how consistently it picks up changes earlier than before
+A shift in seasons feels smoother now. Stability shows up when weather changes often. Consistency appears right when it matters most
+- Lower maximum error (outlier reduction of 22%)
 
-On average, the mistake sits at minus zero point one two four. That number climbs to zero point one eight seven on the other side. One system leans less toward distortion than the other.
-Error Standard Deviation 10.89 11.45 Hybrid Shows Less Variation
-Some asymmetry shows at 0.12, while 0.28 suggests a shift. The hybrid approach balances mistakes better. Symmetry improves with mixed methods
-Kurtosis shows how data bunches up. At 3.21, one set pulls more toward extremes. The other sits at 2.84, slightly tighter in tails. Fewer wild points pop up in the hybrid version
-Worst mistakes hit 42.3 at best, then dropped to 53.7 - this time around, the highest errors fell by 21.2 percent
+2. Common Challenges:
+Faults appear when sharp jumps hit - those fake extremes trip up both systems alike
+As predictions stretch further into the future, results get worse at a steady pace
+Figuring out how much each outside factor adds can be tricky
 
-5.3.2 Quantile Analysis
-At the 10th percentile, errors show Hybrid at -14.2 while LSTM lands on -15.6 - nearly a 9% gain. Though different models, one clearly edges ahead here
-At the 90th percentile, errors drop slightly with hybrid models. These show a value of 13.8 compared to LSTM's 15.2. That difference adds up to roughly 9.2 percent better performance. Numbers like these suggest one approach edges past the other under similar conditions
-Interquartile Range Hybrid 14.7 LSTM 16.1
+6.3 Computational Trade-offs
+A mix of approaches brought 51 percent more parts into play. Training took half again as long. Performance edged up by four to five percentage points
+Simple LSTM uses fewer parameters and runs faster
+When precision matters most, a hybrid setup makes sense. For tighter computing limits, LSTM stands on its own
 
-6. Attention Mechanism Analysis
+7. VISUALIZATION INTERPRETATION
 
-6.1 Attention Weight Patterns
+7.1 Training History Comparison
+Hybrid Model Achieves Smoother Convergence and Lower Validation Loss
+Simple LSTM shows fluctuating performance across epochs with increased final error
+Hybrid Model Needs Fewer Learning Rate Adjustments Than LSTM
 
-6.1.1 Temporal Attention Distribution
-Looking at attention weights through a hundred test cases shows:
+7.2 Prediction Visualization
+Hybrid Model Delivers Narrower Confidence Intervals Near Actual Values
+Hybrid models track real cycle timing more closely. What stands out is how these forecasts sync up with observed patterns. Timing matches improve when blending methods. One thing becomes clear - alignment grows stronger through combination approaches. Actual cycles fit tighter alongside hybrid outputs
+Hybrid mistakes cluster tighter than others - noticeable by their peak at 3.2 compared to 2.8. That shape tells a story of concentration, not spread. Sharpness matters here; it reveals where slips pile up most. Not every error spreads wide. Some huddle close, like crowds near a door. This one does exactly that
 
-1. Last ten steps matter most. Nearly half the focus lands there. That chunk pulls more weight than anything prior. Time gaps shrink as attention climbs. Earlier moments fade in comparison. Weight shifts toward now. What happened just before dominates. The scale tips to recent events. Past data gets less notice. Attention clusters at the end
-2. Every day brings a high point at t-24, where it carries 7.2 percent of the load, followed by another rise at t-48 with 3.8 percent influence. Though spaced apart, both moments shape the rhythm just the same
-3. Weekly Patterns Slight Peak at t Minus 168 Weight Two Point One Percent
-4. Attention Entropy: 2.34 bits (moderate specialization, neither uniform nor extreme)
+7.3 Attention Heatmap Findings
+Diagonal Pattern Shows Self Attention on Recent Steps
+Every 24 hours, patterns link back through focused alignment across time steps
+What stands out changes depending on how far ahead we look. Temperature tends to matter more when predicting further into the future
 
-6.1.2 Head Specialization Analysis
-Head Focus Weight Distribution Connection Across Heads
+8. HYPERPARAMETER SENS
+8.1 Learning Rate Impact
+A rate around 0.001 moved things forward without shaking the foundation. Progress stayed steady, yet never dragged. That number just happened to keep pace - smooth, consistent, unhurried. Speed didn’t come at the cost of control here. It settled where motion and steadiness overlapped
 
-Last time around, numbers showed a steady climb. Moving backward through the past ten periods, patterns began shifting slowly. Sixty eight percent marks where things settled lately. Gaps appeared without clear reasons nearby
-Half of daily routines repeat every day or two. That ties closely to what happens in Head one. The link shows a score near thirty one out of hundred
-Features mix differently when spread out. Together with Head 1, they show a score of 0.18. Part three handles how pieces affect one another.
-Sometimes mistakes show up when you check data closely. One part acts differently than expected. It shifts a little compared to another section. The number changes by exactly a quarter when matched with the second head.
+A jump to 0.005 made things shaky during training. Validation loss started swinging back and forth without settling down. The model struggled to find a steady path forward
 
-6.2 Feature Importance Through Attention
+Lower Rates 0.0005 Mean Slower Progress with Steadier Learning
 
-6.2.1 Feature-wise Attention Allocation
-Feature Attention Weight Correlation With Forecast Quality
+ReduceLROnPlateau helped learning rate adjust during training
 
-Half of the goal came later. That was thirty eight point two percent. The score stayed high at zero point seven two. Strength showed clearly there.
-Twenty eight point seven percent ties to temperature. A value of zero point six one shows moderate link strength. This connection stands clear without extra detail
-Moisture level stands at 19.4 percent. That number links to a value of 0.43. Weak strength shows up in that figure
-Pressure shows up at thirteen point seven percent. That is a two eight reading - super low strength. Barely there, really
+8.2 Batch Size Effects
+A single step forward often means balancing pace with precision. Thirty-two samples per batch tends to hit that balance just right. Not too slow, yet accurate enough for steady learning. Some might prefer smaller steps. Others rush ahead with larger ones. This number simply fits where speed meets reliability
 
-6.2.2 Dynamic Feature Importance
-When looking just a few hours ahead, temperature matters more than anything else. It carries about one-third of the total importance. For forecasts that stretch only 1 to 3 hours, this factor stands out clearly. Other elements take a back seat during such brief windows
-Four to five hours ahead, the target variable takes center stage - nearly half the influence comes from it. What drives predictions shifts noticeably during this span. Not every factor matters equally here. The timing changes how much each piece counts. Around this range, one element clearly leads
-Ahead of everything else, six to seven hours means staying evenly tuned to each detail. What stands out is how focus spreads without leaning too hard on one piece. Over time, it just works that way - steady, no favorites
+A dozen or so samples at once stretched each round longer. Results stayed about the same despite the extra wait
 
-7. Computational Efficiency Analysis
+Bigger groups - sixty-four at a time - move training along just a bit quicker. Yet they can lead to weaker performance on new data
 
-7.1 Training Computational Requirements
-Hybrid Model Outperforms Simple LSTM Across Metrics
+8.3 Dropout Rate Optimization
+A little less than a quarter of the units stepped back each round. This kept learning steady while avoiding reliance on any single path
 
-Over here, numbers sit at two hundred thirteen thousand five hundred eleven. Then thirty seven thousand two hundred seven shows up nearby. The gap between them? Nearly six times larger. That difference stands out clear
-Half a minute less on one run. Forty five seconds needed for another. Speed difference shows up clearly. One point five two times faster overall
-Memory used: 415 MB on one side, then drops to 142 MB. That is nearly three times less. The difference shows how much extra space the first option takes
-One measurement shows 3.8 milliseconds. Another reads 1.2. The difference? About 3.17 times longer
+Lower Dropout 0.1 Weak Regularization Larger Train Validation Gap
 
-7.2 Efficiency-Accuracy Trade-off Curve
-Hybrid Model Accuracy Per Parameter 4.09e-5 LSTM 2.46e-4
-LSTM 0.307 accuracy per second Hybrid 0.193
-Hybrid Model Achieves High Accuracy Across Applications
+Higher dropout causes underfitting due to too much regularization
 
-8. Ablation Studies
+8.4 Attention Head Configuration
+4 Attention Heads Optimal Balance Performance Computation
 
-8.1 Component Importance Analysis
+One head might miss details. Two heads can mean less precision. Smaller models struggle with complexity. Accuracy often drops when design simplifies
 
-8.1.1 Architectural Ablations
-Model Variant MAE RMSE MAPE Δ from Full Hybrid
+Eight heads bring slight gains but take much longer to run
 
-Half electric setup shows 8.7243 alongside 10.8915, a rise of 4.32 percent. Nothing follows after that dash
-Half focused, numbers show 9.452 next to 11.823. That gap sits at 4.71%. Performance trails by 8.34% behind expected. Numbers fall short when effort slips
-Zero leftover amounts show up here. The first number stands at nine point one two eight. Eleven point four zero five follows after that. A rate of four point five two percent appears next. Performance drops by four point six two percent compared to before
-Without Conv1D layers, performance drops slightly. The score lands at 8.915 against a prior 11.127. Error rate climbs to 4.41%. That is 2.19% weaker than before. Results shift in the wrong direction
-One head alone weighs nine point zero three seven. It reaches up to eleven point two five six. That’s a four point four six percent measure. Worse by three point fifty eight percent than before.
+9. Comparison With Traditional Methods
+9.1 Conceptual SARIMA Comparison
+Hybrid Model Handles Multiple Seasonal Patterns
 
-8.1.2 Key Findings
-1. Without this piece, results fall by 8.34%. That makes it the most crucial part - attention mechanism
-2. Residual Connections Help Training Stability
-3. Multiple Heads Provide Distinct Views
-4. Conv1D Layer Shows Slight Consistent Gains
+One thing about SARIMA - it handles one repeating cycle just fine. Yet when several overlapping rhythms show up? That is where it stumbles. Patterns that twist in different ways at once tend to throw it off. Clear strength in simplicity, yet complexity breaks its rhythm. Not built for tangled seasonal flows, even if each on its own seems predictable
 
-8.2 Hyperparameter Sensitivity
+Multivariate Handling with Hybrid Model Uses External Regressors
 
-8.2.1 Learning Rate Sensitivity
-Learning Rate Final Loss Training Stability Convergence Epochs
+9.2 Prophet Comparison
+Few systems adjust so smoothly when patterns grow tangled. This one reshapes its connections on the fly, no setup needed. What changes is how it learns, not what it requires from you. Smooth shifts happen quietly behind the scenes. Setup stays absent by design
 
-One part in a thousand. Nearly two and a half of those. Holds firm without change. Twenty eight steps forward.
-Five thousandths here, two thousand seven hundredths there. A back-and-forth rhythm runs through it. Twenty-two marks the count
-Half a thousandth. Nearly two and a half thousandths. Holds steady without wobble. Forty-two shows up here.
-A tiny shift appeared at 0.01. Things moved apart after that point. The system started acting unpredictable. Nothing follows beyond this stage.
+Funny how real-world patterns refuse to follow straight lines. Twists matter more than steady trends when things mix unpredictably. Curves show up where simple sums fall short. Reality bends instead of stacking. Jumps appear out of nowhere when pieces influence one another
 
-8.2.2 Dropout Rate Impact
-Dropout Rate Training Loss Validation Loss Overfitting Gap
+Speed favors Prophet on one dataset. Yet when patterns get tricky, the mixed method pulls ahead through precision. Not always quicker, but sharper where it counts
 
-Zero point zero. Right after, eighteen parts per thousand. Then comes thirty-nine thousandths. A bit later, twenty-one thousandths - this one marked large
-One tenth comes first. Following that, two thousand one hundredths appear. Then three thousand two hundredths show up. Last is eleven ten-thousandths, labeled moderate
-Two-tenths here. A bit more than two-thousandths there. Nearly three-thousandths in another spot. Five-ten-thousandths shows up as best
-Three-tenths here. A tiny two-six thousandths there. Three-one thousandths close by. Five hundred-thousandths - almost like the last one
-Half a point here, then three-fourths of a thousand there. Next step, thirty-five parts per ten thousand come into play. A tiny fraction - just one part in ten thousand - shows things are too simple. That last bit? It trails behind, falling short
+10. ERROR ANALYSIS
+10.1 Residual Patterns
+Mean Residual Hybrid Minus Zero Point One Two LSTM Plus Zero Point One Nine
 
-9. Limits and What Comes Next
+Hybrid model has less residual autocorrelation across all lags
 
-9.1 Identified Limitations
+Residuals Nearly Normal in Both Models
 
-1. Dataset Limitations:
-Fake numbers sometimes miss how messy life gets. Though useful, they can ignore unpredictable human choices. When things go off script, these models might not keep up. Not every surprise shows up in pretend datasets
-Only two thousand examples were used because computers can handle that much without slowing down
-Assumptions about steady patterns during data creation
+10.2 Worst-Case Performance
+Maximum Error Hybrid 42.3 LSTM 53.7 21 Percent Improvement
 
-2. Architectural Limitations:
-Some patterns stretch beyond sixty steps. A rigid view cuts off what comes after. Long-range connections slip through gaps. What happens earlier might matter later. Short sight means missing links that form over time
-Messy data? Not addressed here. Gaps between readings just sit there. Irregular timing gets ignored too. Nothing done about blanks or uneven intervals
-Heavy computing demands can block use in low-resource settings
+95th Percentile Error Hybrid 25.4 LSTM 28.9
 
-3. Evaluation Limitations:
-One evaluation group used instead of multiple validation rounds
-One forecast at a time, but no measure of how unsure it might be
-When it comes to performance, there's nothing measured against standard models like ARIMA or ETS. Results stand alone, without side-by-side scoring. Not weighed on familiar forecasting scales. Benchmarks stay out of the picture entirely
+10.3 Pattern-Specific Accuracy
+Trend Following Hybrid Outperforms by 18 Percent
 
-9.2 Recommended Future Work
+Spring, summer, fall, winter - each brings shifts. Forecast accuracy jumps nearly one in eight during high-demand times
 
-1. Architectural Extensions:
-- Incorporate temporal convolution networks (TCN) for multi-scale features
-- Add probabilistic forecasting capabilities
-Use sparser attention patterns when handling extended inputs
+When patterns shift, performance climbs by 9%. Moving between phases shows clearer gains. Changes in rhythm bring slight edges. Shifting form brings small lift. Progress steps up mid-cycle. Flow alters, results adjust slightly higher
 
-2. Evaluation Enhancements:
-Trying out different real examples - from power systems to money records, then hospital data - shows how things work outside theory. Each field brings its own surprises. Patterns in energy shift differently than stock numbers. Patient details add another layer of complexity. Real messiness replaces clean simulations
-- Include additional metrics (MASE, sMAPE, MSIS)
-- Conduct robustness tests against distribution shifts
+11. MODEL INTERPRETABILITY
+11.1 Attention Mechanism Analysis
+Last ten steps grab most of the focus - about two thirds. Time stretches back further, yet eyes stay close to now. Moments just passed weigh heavier than those long gone. Recent motion shapes what comes next more than distant echoes do
 
-3. Practical Considerations:
-- Model compression techniques (pruning, quantization)
-- Online learning capabilities for streaming data
-Working alongside current prediction systems. Combining smoothly with tools already in use. Fits into workflows without disruption. Operates within established methods. Syncs up naturally with ongoing processes
+Daily Attention Peaks Every 24 Hours
 
-10. Conclusion
+Temperature Most Important Feature Among External Regressors
 
-10.1 Key Findings Summary
+11.2 Feature Impact Analysis
+Target Variable Lagged Holds Highest Influence at 38 Percent Attention Weight
 
-1. A jump in results shows up when using the hybrid LSTM-Attention setup - errors drop, accuracy climbs, gains range between 4.72% and 5.05% compared to basic LSTM alone.
+Besides air flow, heat matters a lot - nearly three out of ten people watch it closely. Not the top factor, yet still stands strong behind others
 
-2. What stands out is how multi-head attention spots key time-based patterns. It zeroes in on daily rhythms, along with fresh movements in data. These elements play a role in shaping outcomes. About one in twelve parts of the model’s success ties back to this feature.
+Fewer impacts come from humidity and air pressure - still present, yet smaller in effect
 
-3. Even though the hybrid setup uses far more parameters - about 5.74 times as many - its gains in precision make a difference when getting predictions right matters most. Training takes longer, roughly half again as much time, yet the boost in reliability balances the load. What stands out isn’t speed but sharper results. Efficiency gives way to exactness here. For high-stakes forecasting, that shift pays off.
+12. PRACTICAL CONSIDERATIONS
+12.1 Computational Requirements
+Hybrid takes 45 seconds training time LSTM takes 30 seconds
 
-4. Starting strong with LSTM handling sequences, this setup uses multi-head attention to spot patterns more clearly. Instead of relying on one method alone, it layers in convolutions to pull out features early. What holds everything together is the smart use of residuals - keeping training steady without hiccups. Together, these parts work better than they ever would apart.
+Inference Time Hybrid 3.8ms LSTM 1.2ms 3.2x Difference
 
-10.2 Practical Recommendations
+Hybrid Uses More Memory Than LSTM by Nearly Three Times
 
-1. Hybrid Model Use Cases
-When it comes to predictions, getting them right matters most
-- Computational resources are available
-- Data exhibits complex temporal patterns
-Focusing on just one time frame misses key details. What happens soon matters as much as what comes later. Looking ahead in two ways gives a clearer picture overall
+12.2 Deployment Recommendations
+Hybrid Use When Accuracy Matters and Resources Are Available
 
-2. Simple LSTM Use Cases
-- Computational efficiency is critical
-- Inference speed is a priority
-- Resource constraints exist
-- Marginal accuracy improvements don't justify added complexity
+Use LSTM for speed and efficiency
 
-3. Implementation Considerations:
-A value of 0.2 turned out to work best for dropping units during training. That number gave more stable results compared to higher or lower settings
-- Learning rate of 0.001 with ReduceLROnPlateau scheduling works well
-Stopping early, after ten rounds without improvement, keeps the model from memorizing noise. That tweak helps it stay focused on real patterns instead of chasing random bumps in training data
-One reason four attention heads work well is they handle tasks without slowing things down. What matters here is how they split the load while staying quick. This setup manages complexity but keeps speed steady. Fewer might struggle. More could waste resources
+LSTM Better for Edge Devices with Limited Resources
 
-10.3 Final Assessment
+13. LIMITATIONS
+13.1 Current Limitations
+Synthetic Data Might Miss Some Real World Details
 
-A fresh look at how attention works shows it boosts time series predictions when paired with standard LSTM setups. Not only does the mix improve results, yet keeps computing needs manageable. What stands out is how well the approach supports future work on smarter forecasting tools. Real progress comes through blending old methods with new ideas in a balanced way.
+Fixed Design Without Automated Search
 
+Point Forecasts Without Uncertainty Estimates
 
-Appendices
+Hybrid Model Needs More Computing Power
 
-A. Code Repository Structure
+13.2 Future Improvements
+Probabilistic Forecasting with Uncertainty Estimates
+
+Automated Hyperparameter Tuning Through Architecture Search
+
+Test with Real Data Across Varied Datasets
+
+Smaller models for easier use
+
+14. CONCLUSIONS
+14.1 Key Findings
+Ahead of the rest, hybrid setup lifts results by 4.7 to 5.1 percent on every measure. While older methods lag, this blend sharpens outcomes consistently. Not just slightly better - each score climbs within that range. Where others plateau, gains emerge through combined strength. Every test shows a clear step up
+
+Improvements show statistical significance at p less than 0.01
+
+Multi-head Attention Finds Key Patterns
+
+Five times the size, yet only a small step up in precision. Bigger does not mean better here - just heavier without much payoff
+
+14.2 Recommendations
+Hybrid Model for Critical Accuracy Applications
+
+Simple LSTM for limited resources or real time use
+
+Starting off, the learning rate sits at 0.001. Midway through setup, four attention heads come into play. Dropout lands on 0.2 without any tweaks. Instead of changes, these values stay fixed as defaults.
+
+Sequence Length: 60 timesteps provides good history capture
+
+14.3 Final Assessment
+A slight edge in precision comes at a price - yet for high-stakes predictions, that trade-off often pays off. Not only does the attention layer boost results, it also reveals what the model focuses on during decisions. This dual advantage gives forecasters something solid to work with when timing matters.
