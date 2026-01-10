@@ -15,9 +15,9 @@ Lookback Window 60 Timesteps
 Ahead lies a prediction window of seven steps forward. That stretch covers what comes next across seven points ahead
 Train Test Split Eighty Twenty
 
-Three. Model Structures
+Model Structures:
 
-Hybrid Lstm Attention Model
+1. Hybrid Lstm Attention Model
 Each step holds four details across sixty moments in time
 LSTM Layers 128 Units Then 64 With Dropout
 Each attention head works separately. Four of them run at once. They each see data in their own way. The size for keys is set to thirty two
@@ -26,7 +26,7 @@ Feature extraction uses a one-dimensional convolution layer followed by global a
 Each layer shifts from 64 down to 32 nodes. That step cuts complexity while keeping useful patterns alive. Fewer units follow after the first round of processing. Movement through these blocks tightens data flow. The drop in size helps trim noise without losing key details
 7 Step Forecast
 
-Simple LSTM Model Benchmark
+2. Simple LSTM Model Benchmark
 60 Timesteps With Four Features
 Two layers of LSTM, first holds 64 units, second has 32. That setup processes sequences step by step through both stages
 Dense Layers with 16 Units
