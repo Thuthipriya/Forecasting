@@ -4,11 +4,9 @@ This Project Uses Two Deep Learning Models to Forecast Time Series Data
 Hybrid LSTM Attention Model
 Simple LSTM Model Benchmark
 
-One way to see it: attention helps things work better. What happens next shows how focus boosts performance. Look at the results - they reveal clearer outcomes when paying attention matters. Performance shifts when certain parts get more weight. Noticeable changes appear once selective emphasis kicks in
 Time Series Forecast Accuracy.
 
 Dataset Features:
-Imagine fake data that repeats in several ways over time
 Two thousand hourly data points
 One feature stands out - the target variable. Temperature shows up next, bringing its own influence. Following that comes humidity, playing a role in the mix. Pressure tags along at the end, rounding things off
 Lookback Window 60 Timesteps
@@ -20,7 +18,7 @@ Model Structures:
 1. Hybrid Lstm Attention Model
 Each step holds four details across sixty moments in time
 LSTM Layers 128 Units Then 64 With Dropout
-Each attention head works separately. Four of them run at once. They each see data in their own way. The size for keys is set to thirty two
+The size for keys is set to thirty two
 Add and Normalize with Residual Connection
 Feature extraction uses a one-dimensional convolution layer followed by global averaging of features
 Each layer shifts from 64 down to 32 nodes. That step cuts complexity while keeping useful patterns alive. Fewer units follow after the first round of processing. Movement through these blocks tightens data flow. The drop in size helps trim noise without losing key details
@@ -38,12 +36,6 @@ Loss Function Mean Squared Error
 Batch Size 32
 Early stopping with patience set to ten
 Learning Rate Adjusted When Progress Stalls
-
-Results and Analysis:
-The Attention Mechanism in the Hybrid Model Allows It To
-Focusing on Key Moments in the Sequence
-Learn Long-Range Dependencies More Effectively
-Account for differing significance across time intervals
 
 Model pays more attention to recent time steps
 Now here come rhythms showing up again and again through the numbers.
