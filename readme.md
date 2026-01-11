@@ -53,7 +53,7 @@ Metric, Hybrid Model, Simple LSTM, Improvement, Better Model
 
 On average, errors measure at actual value. This matches the second recorded value exactly. The percentage stands at some %. Method used: Hybrid/LSTM model
 Error size sits at atual value, matching earlier readings. About some % off, drawn from recent test rounds. Hybrid/LSTM shows actual value on record. Numbers stay steady, close to past results. One model stands out - Hybrid/LSTM - not by luck. Each value fits within expected boundaries.
-On average, errors sit at actual value %. Sometimes they reach actual value %, depending on conditions. In certain cases, it drops to [X]%. This comes from combining Hybrid and LSTM methods
+On average, errors sit at actual value %. Sometimes they reach actual value %, depending on conditions. In certain cases, it drops to some %. This comes from combining Hybrid and LSTM methods
 Every now and then, the forecast gets it right - actual value % of the time when looking forward, another actual value % when tracking back. A gap remains: only some % align fully. The method behind? A blend leaning on LSTM structures
 
 Key Findings:
